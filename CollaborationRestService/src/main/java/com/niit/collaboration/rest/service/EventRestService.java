@@ -41,7 +41,7 @@ public class EventRestService {
 	}
 	
 	
-	@GetMapping("/event/{id}")
+	@GetMapping("/getevent/{id}")
 	public ResponseEntity<Event> getUserByID(@PathVariable("id") String id)
 	{
 		log.debug("**************Starting of the method getEventByID");
@@ -65,7 +65,7 @@ public class EventRestService {
 	  return	new ResponseEntity<Event>(event , HttpStatus.OK);
 	}
 	
-	@PostMapping("/event/")
+	@PostMapping("/createevent/")
 	public Event createEvent(@RequestBody Event newEvent)
 	{
 		log.debug("Calling createEvent method ");
@@ -124,7 +124,7 @@ public class EventRestService {
 	}
 	
 
-	@DeleteMapping("event/{id}")
+	@DeleteMapping("deletevent/{id}")
 	public Event deleteUser(@PathVariable("id") String id)
 	{
 		

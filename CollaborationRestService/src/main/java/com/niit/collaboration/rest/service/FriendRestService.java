@@ -21,21 +21,21 @@ import com.niit.collaboration.model.User;
 @RestController
 public class FriendRestService {
 
-
 	 private static Logger log = LoggerFactory.getLogger(FriendRestService.class);
 	
 	@Autowired
-	private static Friend friend;
+	private  Friend friend;
 	
 	@Autowired
-	private static FriendDAO friendDAO;
+	private FriendDAO friendDAO;
 	
 	
 	@GetMapping("/friends")
 	public ResponseEntity< List<Friend>> getAllFriend()
 	{
+		System.out.println("hhhahahaha");
 		List<Friend> friendList = friendDAO.list();
-		
+		System.out.println("hhhahahaha");
 		//ResponseEntity:  we can send the data + HTTP status codes + error message
 		// like 200 - success
 		// 404 - page not found
@@ -66,7 +66,7 @@ public class FriendRestService {
 	  return	new ResponseEntity<Friend>(friend, HttpStatus.OK);
 	}
 	
-	@PostMapping("/friend/")
+	@PostMapping("/createfriend/")
 	public Friend createFriend(@RequestBody Friend newFriend)
 	{
 		log.debug("Calling createUser method ");
@@ -97,7 +97,7 @@ public class FriendRestService {
 		
 }
 	
-	@DeleteMapping("friend/{id}")
+	@DeleteMapping("deletefriend/{id}")
 	public Friend deleteFriend(@PathVariable("id") String id)
 	{
 		
@@ -113,6 +113,7 @@ public class FriendRestService {
 	    {
 	    	  if (friendDAO.delete(id) )
 	    	  {
+	    		  System.out.println("jjjj");
 	    		  friend.setErrorCode("200");
 	    		  friend.setErrorMessage("Successfully deleted");
 	    	  }

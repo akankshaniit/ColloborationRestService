@@ -22,12 +22,12 @@ import com.niit.collaboration.model.User;
 public class ChatRestService {
 
 	 private static Logger log = LoggerFactory.getLogger(ChatRestService.class);
-	 
-	 @Autowired
-		private static Chat chat;
+
+	    @Autowired
+		private  Chat chat;
 		
 		@Autowired
-		private static ChatDAO chatDAO;
+		private ChatDAO chatDAO;
 		
 		
 		@GetMapping("/chat")
@@ -42,15 +42,16 @@ public class ChatRestService {
 		}
 	
 		//http://localhost:8080/CollaborationResetService/user/niit
-		@GetMapping("/chat/{id}")
-		public ResponseEntity<Chat> getUserByID(@PathVariable("id") String id)
+		@GetMapping("/getchat/{id}")
+		public ResponseEntity<Chat> getChatByID(@PathVariable("id") String id)
 		{
 			log.debug("**************Starting of the method getChatByID");
-			log.info("***************Trying to get userdetails of the id " + id);
+			log.info("***************Trying to get chatdetails of the id " + id);
 			chat = chatDAO.get(id);
 			
 			if(chat==null)
 			{
+				
 				chat = new Chat();
 				chat.setErrorCode("404");
 				chat.setErrorMessage("Chat id does not exist  :" + id);
@@ -67,7 +68,7 @@ public class ChatRestService {
 		}
 		
 		
-		@PostMapping("/chat/")
+		@PostMapping("/createchat/")
 		public Chat createChat(@RequestBody Chat newChat)
 		{
 			log.debug("Calling createUser method ");
@@ -98,9 +99,9 @@ public class ChatRestService {
 			
 	}
 		
-		@PostMapping("/updateUser/")
+		@PostMapping("/updateChat/")
 		
-		public Chat updateUserDetails(@RequestBody Chat updateChat)
+		public Chat updateChatDetails(@RequestBody Chat updateChat)
 		{
 			
 			//check whether the id exist or not
@@ -125,7 +126,7 @@ public class ChatRestService {
 		}
 		
 
-		@DeleteMapping("chat/{id}")
+		@DeleteMapping("deletechat/{id}")
 		public Chat deleteChat(@PathVariable("id") String id)
 		{
 			

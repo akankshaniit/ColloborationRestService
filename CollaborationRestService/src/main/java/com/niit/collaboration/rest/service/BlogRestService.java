@@ -60,12 +60,12 @@ public class BlogRestService {
 			blog.setErrorMessage("success");
 		}
 		
-		log.info("**************** Name of the Blog is " + blog.getUser_id());
+		log.info("**************** Id of the Blog is " + blog.getId());
 		log.debug("**************Ending of the method getBlogByID");
 	  return	new ResponseEntity<Blog>(blog , HttpStatus.OK);
 	}
 	
-	@PostMapping("/blog/")
+	@PostMapping("/createblog/")
 	public Blog createBlog(@RequestBody Blog newBlog)
 	{
 		log.debug("Calling createBlog method ");
@@ -122,7 +122,7 @@ public class BlogRestService {
 		
 	}
 	
-	@DeleteMapping("blog/{id}")
+	@DeleteMapping("deleteblog/{id}")
 	public Blog deleteBlog(@PathVariable("id") String id)
 	{
 		

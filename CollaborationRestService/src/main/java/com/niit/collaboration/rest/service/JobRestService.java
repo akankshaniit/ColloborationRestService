@@ -19,7 +19,7 @@ import com.niit.collaboration.model.User;
 public class JobRestService {
 
 	 private static Logger log = LoggerFactory.getLogger(UserService.class);
-		
+	
 	 @Autowired
 		private static Job job;
 		
@@ -38,7 +38,7 @@ public class JobRestService {
 		}
 	
 		
-		@GetMapping("/job/{id}")
+		@GetMapping("/getjob/{id}")
 		public ResponseEntity<Job> getJobByID(@PathVariable("id") String id)
 		{
 			log.debug("**************Starting of the method getJobByID");

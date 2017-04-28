@@ -20,24 +20,24 @@ import com.niit.collaboration.model.User;
 
 @RestController
 public class JobApplicationRestService {
-	 private static Logger log = LoggerFactory.getLogger(UserService.class);
+	 private static Logger log = LoggerFactory.getLogger(JobApplicationRestService.class);
 	
-	 
+ 
 	 @Autowired
-		private static JobApplication jobapplication;
+		private static JobApplication jobApplication;
 		
 		@Autowired
-		private static JobApplicationDAO jobapplicationDAO;
+		private static JobApplicationDAO jobApplicationDAO;
 		
 		@GetMapping("/jobapp")
 		public ResponseEntity< List<JobApplication>> getAllJobApp()
 		{
-			List<JobApplication> jobapplicationList =  jobapplicationDAO.list();
+			List<JobApplication> jobApplicationList =  jobApplicationDAO.list();
 			
 			//ResponseEntity:  we can send the data + HTTP status codes + error message
 			// like 200 - success
 			// 404 - page not found
-			return   new ResponseEntity<List<JobApplication>>(jobapplicationList, HttpStatus.OK);
+			return   new ResponseEntity<List<JobApplication>>(jobApplicationList, HttpStatus.OK);
 		}
 		
 		
@@ -46,38 +46,38 @@ public class JobApplicationRestService {
 		{
 			log.debug("**************Starting of the method getJobApplicationByID");
 			log.info("***************Trying to get userdetails of the id " + id);
-			jobapplication = jobapplicationDAO.get(id);
+			jobApplication = jobApplicationDAO.get(id);
 			
-			if(jobapplication==null)
+			if(jobApplication==null)
 			{
-				jobapplication = new JobApplication();
-				jobapplication.setErrorCode("404");
-				jobapplication.setErrorMessage("User does not exist with the id :" + id);
+				jobApplication = new JobApplication();
+				jobApplication.setErrorCode("404");
+				jobApplication.setErrorMessage("User does not exist with the id :" + id);
 			}
 			else
 			{
-				jobapplication.setErrorCode("200");
-				jobapplication.setErrorMessage("success");
+				jobApplication.setErrorCode("200");
+				jobApplication.setErrorMessage("success");
 			}
 			
-			log.info("**************** Job Application userId " + jobapplication.getUserid());
+			log.info("**************** Job Application userId " + jobApplication.getUserid());
 			log.debug("**************Ending of the method getjobapplicationByID");
-		  return	new ResponseEntity<JobApplication>(jobapplication , HttpStatus.OK);
+		  return	new ResponseEntity<JobApplication>(jobApplication , HttpStatus.OK);
 		}
 		
 		
-		@PostMapping("/jobapplication/")
+		@PostMapping("/createjob/")
 		public JobApplication createJobApplication(@RequestBody JobApplication newJobApplication)
 		{
 			log.debug("Calling createjobapplication method ");
 			//before creating user, check whether the id exist in the db or not
 			
-			jobapplication = jobapplicationDAO.get(newJobApplication.getId());
-			if( jobapplication ==null)
+			jobApplication = jobApplicationDAO.get(newJobApplication.getId());
+			if( jobApplication ==null)
 			{
 				log.debug("User does not exist...trying to create new user");
 				//id does not exist in the db
-				jobapplicationDAO.save(newJobApplication);
+				jobApplicationDAO.save(newJobApplication);
 				//NLP - NullPointerException
 				//Whenever you call any method/variable on null object - you will get NLP
 				newJobApplication.setErrorCode("200");
@@ -92,7 +92,7 @@ public class JobApplicationRestService {
 				newJobApplication.setErrorMessage("Please choose another id as it is exist");
 				
 			}
-			log.debug("Endig of the  createUser method ");
+			log.debug("Endig of the  createJobApplication method ");
 			return newJobApplication;
 			
 	}
@@ -106,12 +106,12 @@ public class JobApplicationRestService {
 			
 			//check whether the id exist or not
 			
-			jobapplication=  jobapplicationDAO.get(updateJobApp.getId());
+			jobApplication=  jobApplicationDAO.get(updateJobApp.getId());
 			
 			
-			if(jobapplication!=null)
+			if(jobApplication!=null)
 			{
-				jobapplicationDAO.update(updateJobApp);
+				jobApplicationDAO.update(updateJobApp);
 				updateJobApp.setErrorCode("200");
 				updateJobApp.setErrorMessage("Successfully updated the details");
 			}
@@ -126,35 +126,35 @@ public class JobApplicationRestService {
 		
 		
 		
-		@DeleteMapping("jobapplication/{id}")
+		@DeleteMapping("deletejob/{id}")
 		public JobApplication deleteJobApplication(@PathVariable("id") String id)
 		{
 			
 			//whether record exist with this id or not
 			
 			
-		    if(	jobapplicationDAO.get(id)  ==null)
+		    if(	jobApplicationDAO.get(id)  ==null)
 		    {
-		    	jobapplication.setErrorCode("404");
-		    	jobapplication.setErrorMessage("Could not delete.  User does not exist with this id " + id);
+		    	jobApplication.setErrorCode("404");
+		    	jobApplication.setErrorMessage("Could not delete.  User does not exist with this id " + id);
 		    }
 		    else
 		    {
-		    	  if (	jobapplicationDAO.delete(id) )
+		    	  if (	jobApplicationDAO.delete(id) )
 		    	  {
-		    			jobapplication.setErrorCode("200");
-		    			jobapplication.setErrorMessage("Successfully deleted");
+		    			jobApplication.setErrorCode("200");
+		    			jobApplication.setErrorMessage("Successfully deleted");
 		    	  }
 		    	  else
 		    	  {
-		    			jobapplication.setErrorCode("404");
-		    			jobapplication.setErrorMessage("Could not delete. Please contact administrator");
+		    			jobApplication.setErrorCode("404");
+		    			jobApplication.setErrorMessage("Could not delete. Please contact administrator");
 		    	
 		    	  }
 		    	
 		      }
 		    
-		    return 	jobapplication;
+		    return 	jobApplication;
 			
 		}
 }

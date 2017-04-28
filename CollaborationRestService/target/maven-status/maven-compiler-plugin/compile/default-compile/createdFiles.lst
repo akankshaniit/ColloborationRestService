@@ -1,0 +1,7 @@
+com\niit\collaboration\rest\service\FriendRestService.class
+com\niit\collaboration\rest\service\ChatRestService.class
+com\niit\collaboration\rest\service\BlogRestService.class
+com\niit\collaboration\rest\service\EventRestService.class
+com\niit\collaboration\rest\service\JobRestService.class
+com\niit\collaboration\rest\service\JobApplicationRestService.class
+com\niit\collaboration\rest\service\UserService.class
