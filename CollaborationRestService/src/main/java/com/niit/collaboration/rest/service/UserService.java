@@ -125,7 +125,7 @@ public class UserService {
 				//NLP - NullPointerException
 				//Whenever you call any method/variable on null object - you will get NLP
 				newUser.setErrorCode("200");
-				newUser.setErrorMessage("Thank you fo registration.");
+				newUser.setErrorMessage("Thank you for registration.");
 				
 			}
 			else
