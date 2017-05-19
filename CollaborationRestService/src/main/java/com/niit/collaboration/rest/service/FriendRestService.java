@@ -1,6 +1,9 @@
 package com.niit.collaboration.rest.service;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,10 +14,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.niit.collaboration.dao.FriendDAO;
+import com.niit.collaboration.dao.UserDAO;
 import com.niit.collaboration.model.Friend;
 import com.niit.collaboration.model.User;
 
@@ -29,42 +35,170 @@ public class FriendRestService {
 	@Autowired
 	private FriendDAO friendDAO;
 	
+	@Autowired
+	HttpSession httpSession;
 	
-	@GetMapping("/friends")
+	@Autowired
+	UserDAO userDAO;
+	
+	@GetMapping("/myfriends")
 	public ResponseEntity< List<Friend>> getAllFriend()
 	{
-		System.out.println("hhhahahaha");
-		List<Friend> friendList = friendDAO.list();
-		System.out.println("hhhahahaha");
-		//ResponseEntity:  we can send the data + HTTP status codes + error message
-		// like 200 - success
-		// 404 - page not found
-		return   new ResponseEntity<List<Friend>>(friendList, HttpStatus.OK);
+		
+		log.debug("->->->->calling method getMyFriends");
+		String loggedInUserID = (String) httpSession.getAttribute("loggedInUserID");
+		List<Friend> myFriends = new ArrayList<Friend>();
+		if(loggedInUserID == null)
+		{
+			friend.setErrorCode("404");
+			friend.setErrorMessage("Please login to know your friends");
+			myFriends.add(friend);
+			return new ResponseEntity<List<Friend>>(myFriends, HttpStatus.OK);
+			
+		}
+       
+		log.debug("getting friends of : " + loggedInUserID);
+		 myFriends = friendDAO.getMyFriends(loggedInUserID);
+
+		if (myFriends.isEmpty()) {
+			log.debug("Friends does not exsit for the user : " + loggedInUserID);
+			friend.setErrorCode("404");
+			friend.setErrorMessage("You does not have any friends");
+			myFriends.add(friend);
+		}
+		log.debug("Send the friend list ");
+		return new ResponseEntity<List<Friend>>(myFriends, HttpStatus.OK);	}
+	
+	@GetMapping("/addFriend/{friendID}")
+	public ResponseEntity<Friend> sendFriendRequest(@PathVariable("friendID") String friendID) {
+		log.debug("->->->->calling method sendFriendRequest");
+		String loggedInUserID = (String) httpSession.getAttribute("loggedInUserID");
+		friend.setUser_id(loggedInUserID);
+		friend.setFriend_id(friendID);
+		friend.setStatus('N'); // N - New, R->Rejected, A->Accepted
+		friend.setIsOnline('N');
+		// Is the user already sent the request previous?
+		
+		//check whether the friend exist in user table or not
+		if(isUserExist(friendID)==false)
+		{
+			friend.setErrorCode("404");
+			friend.setErrorMessage("No user exist with the id :" + friendID);
+		}
+		
+		else
+
+		if (friendDAO.get(loggedInUserID, friendID) != null) {
+			friend.setErrorCode("404");
+			friend.setErrorMessage("You already sent the friend request to " + friendID);
+
+		} else {
+			friendDAO.save(friend);
+
+			friend.setErrorCode("200");
+			friend.setErrorMessage("Friend request successfull.." + friendID);
+		}
+
+		return new ResponseEntity<Friend>(friend, HttpStatus.OK);
+
 	}
 	
-	@GetMapping("/friend/{id}")
-	public ResponseEntity<Friend> getFriendByID(@PathVariable("id") String id)
+	private boolean isUserExist(String id)
 	{
-		log.debug("**************Starting of the method getUserByID");
-		log.info("***************Trying to get userdetails of the id " + id);
-		friend = friendDAO.get(id);
-		
-		if(friend==null)
-		{
-			friend = new Friend();
-			friend.setErrorCode("404");
-			friend.setErrorMessage("User does not exist with the id :" + id);
-		}
+		if(userDAO.get(id)==null)
+			return false;
 		else
+			return true;
+	}
+	
+	private boolean isFriendRequestAvailabe(String friendID)
+	{
+		String loggedInUserID = (String) httpSession.getAttribute("loggedInUserID");
+		
+		if(friendDAO.get(loggedInUserID,friendID)==null)
+			return false;
+		else
+			return true;
+	}
+	
+	@PutMapping("/unFriend/{friendID}")
+	public ResponseEntity<Friend> unFriend(@PathVariable("friendID") String friendID) {
+		log.debug("->->->->calling method unFriend");
+		updateRequest(friendID, 'U');
+		return new ResponseEntity<Friend>(friend, HttpStatus.OK);
+
+	}
+	
+	@PutMapping("/rejectFriend/{friendID}")
+	public ResponseEntity<Friend> rejectFriendFriendRequest(@PathVariable("friendID") String friendID) {
+		log.debug("->->->->calling method rejectFriendFriendRequest");
+
+		updateRequest(friendID, 'R');
+		return new ResponseEntity<Friend>(friend, HttpStatus.OK);
+
+	}
+	
+	@PutMapping("/accepttFriend/{friendID}")
+	public ResponseEntity<Friend> acceptFriendFriendRequest(@PathVariable("friendID") String friendID) {
+		log.debug("->->->->calling method acceptFriendFriendRequest");
+        
+		friend = updateRequest(friendID, 'A');
+		return new ResponseEntity<Friend>(friend, HttpStatus.OK);
+
+	}
+	
+	private Friend updateRequest(String friendID, Character status) {
+		log.debug("Starting of the method updateRequest");
+		String loggedInUserID = (String) httpSession.getAttribute("loggedInUserID");
+		log.debug("loggedInUserID : " + loggedInUserID);
+		
+		if(isFriendRequestAvailabe(friendID)==false)
 		{
-			friend.setErrorCode("200");
-			friend.setErrorMessage("success");
+			friend.setErrorCode("404");
+			friend.setErrorMessage("The request does not exist.  So you can not update to "+status);
 		}
 		
-		log.info("**************** Name of the Friend is " + friend.getId());
-		log.debug("**************Ending of the method getUserByID");
-	  return	new ResponseEntity<Friend>(friend, HttpStatus.OK);
+		if (status.equals('A') || status.equals('R'))
+			friend = friendDAO.get(friendID, loggedInUserID);
+		else
+			friend = friendDAO.get(loggedInUserID, friendID);
+		friend.setStatus(status); // N - New, R->Rejected, A->Accepted
+
+		friendDAO.update(friend);
+
+		friend.setErrorCode("200");
+		friend.setErrorMessage(
+				"Request from   " + friend.getUser_id() + " To " + friend.getFriend_id() + " has updated to :" + status);
+		log.debug("Ending of the method updateRequest");
+		return friend;
+
 	}
+
+	@GetMapping("/getMyFriendRequests/")
+	public ResponseEntity<List<Friend>> getMyFriendRequests() {
+		log.debug("->->->->calling method getMyFriendRequests");
+		String loggedInUserID = (String) httpSession.getAttribute("loggedInUserID");
+		List<Friend> myFriendRequests = friendDAO.getNewFriendRequests(loggedInUserID);
+		return new ResponseEntity<List<Friend>>(myFriendRequests, HttpStatus.OK);
+
+	}
+	
+	@RequestMapping("/getRequestsSendByMe")
+	public ResponseEntity<List<Friend>>  getRequestsSendByMe()
+	{
+		log.debug("->->->->calling method getRequestsSendByMe");
+		
+		String loggedInUserID = (String) httpSession.getAttribute("loggedInUserID");
+		List<Friend> requestSendByMe = friendDAO.getRequestsSendByMe(loggedInUserID);
+		
+		log.debug("->->->->Ending method getRequestsSendByMe");
+		
+		return new ResponseEntity<List<Friend>>(requestSendByMe, HttpStatus.OK);
+		
+	}
+	
+	
+	
 	
 	@PostMapping("/createfriend/")
 	public Friend createFriend(@RequestBody Friend newFriend)

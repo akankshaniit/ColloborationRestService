@@ -1,5 +1,6 @@
 package com.niit.collaboration.rest.service;
 
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -28,6 +29,8 @@ public class BlogRestService {
 	
 	@Autowired
 	private BlogDAO blogDAO;
+	
+	
 	
 	@GetMapping("/blogs")
 	public ResponseEntity< List<Blog>> getAllBlog()
@@ -76,6 +79,8 @@ public class BlogRestService {
 		{
 			log.debug("User does not exist...trying to create new user");
 			//id does not exist in the db
+			
+		//	blog.setDateTime(new Date(System.currentTimeMillis()));
 			blogDAO.save(newBlog);
 			//NLP - NullPointerException
 			//Whenever you call any method/variable on null object - you will get NLP
@@ -98,7 +103,7 @@ public class BlogRestService {
 	
 	@PostMapping("/updateBlog/")
 	
-	public Blog updateBlogDetails(@RequestBody Blog updateBlog)
+	public Blog updateBlog(@RequestBody Blog updateBlog)
 	{
 		
 		//check whether the id exist or not
@@ -153,5 +158,52 @@ public class BlogRestService {
 	    return blog;
 		
 	}
+	
+	
+
+	@GetMapping( "/acceptblog/{id}")
+	public ResponseEntity<Blog> accept(@PathVariable("id") String id) {
+		log.debug("Starting of the method Blogaccept");
+
+		blog = updateStatus(id, 'A', "");
+		log.debug("Ending of the method accept");
+		return new ResponseEntity<Blog>(blog, HttpStatus.OK);
+
+	}
+	@GetMapping( "/rejectblog/{id}/{reason}")
+	public ResponseEntity<Blog> reject(@PathVariable("id") String id, @PathVariable("reason") String reason) {
+		log.debug("Starting of the method reject");
+
+		blog = updateStatus(id, 'R', reason);
+		log.debug("Ending of the method reject");
+		return new ResponseEntity<Blog>(blog, HttpStatus.OK);
+
+	}
+	
+	private Blog updateStatus(String id, char status, String reason) {
+		log.debug("Starting of the method updateStatus");
+
+		log.debug("status: " + status);
+		blog = blogDAO.get(id);
+
+		if (blog == null) {
+			blog = new Blog();
+			blog.setErrorCode("404");
+			blog.setErrorMessage("Could not update the status to " + status);
+		} else {
+
+		//	user.setStatus(status);
+		//	user.setReason(reason);
+			
+			blogDAO.update(blog);
+			
+			blog.setErrorCode("200");
+			blog.setErrorMessage("Updated the status Successfully");
+		}
+		log.debug("Ending of the method updateStatus");
+		return blog;
+
+	}
+	
 	
 }

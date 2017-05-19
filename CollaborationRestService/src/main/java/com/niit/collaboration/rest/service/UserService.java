@@ -1,6 +1,9 @@
 package com.niit.collaboration.rest.service;
 
+import java.util.Date;
 import java.util.List;
+
+import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +16,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.niit.collaboration.dao.FriendDAO;
 import com.niit.collaboration.dao.UserDAO;
 import com.niit.collaboration.model.User;
 
@@ -36,7 +42,11 @@ public class UserService {
 	@Autowired
 	private UserDAO userDAO;
 	
+	@Autowired
+	FriendDAO friendDAO;
 	
+	@Autowired
+	HttpSession session;
 	
 	//Simple Test whether restcontroller is working or not
 	
@@ -88,25 +98,43 @@ public class UserService {
 		  return	new ResponseEntity<User>(user , HttpStatus.OK);
 		}
 		
-		@GetMapping("/validate/{id}/{password}")
-		public User validateCredentials(@PathVariable("id") String id, @PathVariable("password") String pwd )
+		@PostMapping("/validate")
+		public ResponseEntity<User> validateCredentials(@RequestBody User user)
 		{
+			log.debug("->->->->calling method authenticate"+user.getEmail()+user.getPassword());
+			user = userDAO.isValidate(user.getEmail(), user.getPassword());
+			//log.debug("user"+user);
 			
-			 if (userDAO.isValidate(id, pwd))
-			 {
-				user =  userDAO.get(id);
-				 user.setErrorCode("200");
-				 user.setErrorMessage("Valid credentials");
+			if (user == null) {
+				user = new User(); // Do wee need to create new user?
+				user.setErrorCode("404");
+				user.setErrorMessage("Invalid Credentials.  Please enter valid credentials");
+				log.debug("->->->->InValid Credentials");
+
 			 }
 			 else
 			 {
-				 user.setErrorCode("404");
-				 user.setErrorMessage("Invalid credentials");
+				 
+						user.setErrorCode("200");
+						user.setErrorMessage("You have successfully logged in.");
+					user.setIsOnline('Y');
+						log.debug("->->->->Valid Credentials");
+						/*session.setAttribute("loggedInUser", user);*/
+						session.setAttribute("loggedInUserID", user.getId());
+						session.setAttribute("loggedInUserRole", user.getRole());
+					
+						log.debug("You are loggin with the role : " +session.getAttribute("loggedInUserRole"));
+
+					friendDAO.setOnline(user.getId());
+					userDAO.setOnline(user.getId());
 			 }
+
+					return new ResponseEntity<User>(user, HttpStatus.OK);
 			 
-			 return user;
 			
 		}
+		
+		
 		
 	
 
@@ -143,7 +171,7 @@ public class UserService {
 		
 		@PostMapping("/updateUser/")
 		
-		public User updateUserDetails(@RequestBody User updateUser)
+		public User updateUser(@RequestBody User updateUser)
 		{
 			
 			//check whether the id exist or not
@@ -194,13 +222,161 @@ public class UserService {
 		    	
 		    	  }
 		    	
-		    	
-		    	
-		    	
-		    	
-		    }
+		     }
 		    
 		    return user;
 			
-		}
+		    	
+		}	
+			
+		//Admin should able to make one of the employee as admin
+				@PutMapping("/makeAdmin/{id}")
+				public ResponseEntity<User> makeAdmin(@PathVariable("id") String empID) {
+
+					log.debug("calling the method makeAdmin");
+					log.debug("with the id :" + empID);
+					user = userDAO.get(empID);
+
+					if (user == null) {
+						log.debug("Employee does not exist with the id : " + empID);
+						user = new User();
+						user.setErrorCode("404");
+						user.setErrorMessage("Employee does not exist");
+						return new ResponseEntity<User>(user, HttpStatus.OK); // 200
+
+					}
+					
+					if(user.getRole()!="Employee")
+					{
+						log.debug("We cannot make this user as admin: " + empID);
+						user = new User();
+						user.setErrorCode("404");
+						user.setErrorMessage("We cannot make thhis user as admin: " + empID);
+						return new ResponseEntity<User>(user, HttpStatus.OK); // 200
+						
+					}
+						
+					user.setRole("Admin");
+					userDAO.update(user);
+					user.setErrorCode("200");
+					user.setErrorMessage("Successfully assign Admin role to the employy :" +user.getName());
+					log.debug("Employee role updated as admin successfully " + empID);
+
+					return new ResponseEntity<User>(user, HttpStatus.OK); // 200
+
+				}
+				
+				@GetMapping("/listAllUsersNotFriends")
+				public ResponseEntity<List<User>> listAllUsersNotFriends() {
+
+					log.debug("->->->->calling method listAllUsers");
+					
+					String loggedInUserID = (String) session.getAttribute("loggedInUserID");
+					
+					log.debug("Loggined in user id is : " + loggedInUserID);
+					
+					
+					List<User> users = userDAO.notMyFriendList(loggedInUserID);
+
+					// errorCode :200 :404
+					// errorMessage :Success :Not found
+
+					if (users.isEmpty()) {
+						user.setErrorCode("404");
+						user.setErrorMessage("No users are available");
+						users.add(user);
+					}
+
+					return new ResponseEntity<List<User>>(users, HttpStatus.OK);
+				}
+				
+				@GetMapping( "/accept/{id}")
+				public ResponseEntity<User> accept(@PathVariable("id") String id) {
+					log.debug("Starting of the method accept");
+
+					user = updateStatus(id, 'A', "");
+					log.debug("Ending of the method accept");
+					return new ResponseEntity<User>(user, HttpStatus.OK);
+
+				}
+				
+				@GetMapping( "/reject/{id}/{reason}")
+				public ResponseEntity<User> reject(@PathVariable("id") String id, @PathVariable("reason") String reason) {
+					log.debug("Starting of the method reject");
+
+					user = updateStatus(id, 'R', reason);
+					log.debug("Ending of the method reject");
+					return new ResponseEntity<User>(user, HttpStatus.OK);
+
+				}
+				
+				private User updateStatus(String id, char status, String reason) {
+					log.debug("Starting of the method updateStatus");
+
+					log.debug("status: " + status);
+					user = userDAO.get(id);
+
+					if (user == null) {
+						user = new User();
+						user.setErrorCode("404");
+						user.setErrorMessage("Could not update the status to " + status);
+					} else {
+
+					//	user.setStatus(status);
+					//	user.setReason(reason);
+						
+						userDAO.update(user);
+						
+						user.setErrorCode("200");
+						user.setErrorMessage("Updated the status successfully");
+					}
+					log.debug("Ending of the method updateStatus");
+					return user;
+
+				}
+				
+				@GetMapping("/myProfile")
+				public ResponseEntity<User> myProfile() {
+					log.debug("->->calling method myProfile");
+					String loggedInUserID = (String) session.getAttribute("loggedInUserID");
+					User user = userDAO.get(loggedInUserID);
+					if (user == null) {
+						log.debug("->->->-> User does not exist wiht id" + loggedInUserID);
+						user = new User(); // It does not mean that we are inserting new row
+						user.setErrorCode("404");
+						user.setErrorMessage("User does not exist");
+						return new ResponseEntity<User>(user, HttpStatus.NOT_FOUND);
+					}
+					log.debug("->->->-> User exist with id" + loggedInUserID);
+					log.debug(user.getName());
+					return new ResponseEntity<User>(user, HttpStatus.OK);
+				}
+				
+				
+@GetMapping("/logout")
+public ResponseEntity<User> logout(HttpSession session) {
+	log.debug("->->->->calling method logout");
+	String loggedInUserID = (String) session.getAttribute("loggedInUserID");
+	
+	 user = userDAO.get(loggedInUserID);
+	 
+/*	 SimpleDateFormat sdf = new SimpleDateFormat("dd/mm/yyy : hh:ss");
+	 sdf.parse(arg0)*/
+	 
+	 user.setLastSeenTime(new Date(System.currentTimeMillis()));
+	 userDAO.update(user);
+	 
+	
+	friendDAO.setOffLine(loggedInUserID);
+	userDAO.setOffLine(loggedInUserID);
+
+	session.invalidate();
+
+	user.setErrorCode("200");
+	user.setErrorMessage("You have successfully logged");
+	return new ResponseEntity<User>(user, HttpStatus.OK);
+};
+
+
 }
+	
