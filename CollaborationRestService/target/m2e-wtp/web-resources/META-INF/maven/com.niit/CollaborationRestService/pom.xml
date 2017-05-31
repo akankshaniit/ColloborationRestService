@@ -8,8 +8,7 @@
   <name>CollaborationRestService Maven Webapp</name>
   <url>http://maven.apache.org</url>
   <dependencies>
-    
-    <dependency>
+     <dependency>
      <groupId>com.niit</groupId>
   <artifactId>CollaborationBackEnd</artifactId>
   <version>0.0.1-SNAPSHOT</version>
@@ -33,7 +32,8 @@
     <artifactId>spring-webmvc</artifactId>
     <version>4.3.3.RELEASE</version>
 </dependency>
-   
+ 
+ 
        
  <dependency>
     <groupId>org.springframework</groupId>
@@ -85,8 +85,24 @@
     <version>4.2.9.RELEASE</version>
 </dependency>
 
-    
-    
+<!-- java WebSocked  -->
+  <dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-websocket</artifactId>
+    <version>4.1.1.RELEASE</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-messaging</artifactId>
+    <version>4.1.1.RELEASE</version>
+</dependency>
+<dependency>
+    <groupId>javax.websocket</groupId>
+    <artifactId>javax.websocket-api</artifactId>
+    <version>1.0</version>
+    <scope>provided</scope>
+</dependency>
+  
   </dependencies>
   <build>
     <finalName>CollaborationRestService</finalName>

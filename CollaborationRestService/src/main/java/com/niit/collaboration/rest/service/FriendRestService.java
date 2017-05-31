@@ -1,6 +1,7 @@
 package com.niit.collaboration.rest.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpSession;
@@ -66,7 +67,7 @@ public class FriendRestService {
 			friend.setErrorMessage("You does not have any friends");
 			myFriends.add(friend);
 		}
-		log.debug("Send the friend list ");
+		log.debug("Send the friend list " +myFriends);
 		return new ResponseEntity<List<Friend>>(myFriends, HttpStatus.OK);	}
 	
 	@GetMapping("/addFriend/{friendID}")
@@ -77,6 +78,7 @@ public class FriendRestService {
 		friend.setFriend_id(friendID);
 		friend.setStatus('N'); // N - New, R->Rejected, A->Accepted
 		friend.setIsOnline('N');
+		friend.setLastSeenTime(new Date(System.currentTimeMillis()) );
 		// Is the user already sent the request previous?
 		
 		//check whether the friend exist in user table or not
@@ -121,8 +123,8 @@ public class FriendRestService {
 			return true;
 	}
 	
-	@PutMapping("/unFriend/{friendID}")
-	public ResponseEntity<Friend> unFriend(@PathVariable("friendID") String friendID) {
+	@PutMapping("/unFriend/{friend_id}")
+	public ResponseEntity<Friend> unFriend(@PathVariable("friend_id") String friendID) {
 		log.debug("->->->->calling method unFriend");
 		updateRequest(friendID, 'U');
 		return new ResponseEntity<Friend>(friend, HttpStatus.OK);
@@ -138,7 +140,7 @@ public class FriendRestService {
 
 	}
 	
-	@PutMapping("/accepttFriend/{friendID}")
+	@PutMapping("/acceptFriend/{friendID}")
 	public ResponseEntity<Friend> acceptFriendFriendRequest(@PathVariable("friendID") String friendID) {
 		log.debug("->->->->calling method acceptFriendFriendRequest");
         
@@ -162,8 +164,8 @@ public class FriendRestService {
 			friend = friendDAO.get(friendID, loggedInUserID);
 		else
 			friend = friendDAO.get(loggedInUserID, friendID);
-		friend.setStatus(status); // N - New, R->Rejected, A->Accepted
-
+		friend.setStatus('A'); // N - New, R->Rejected, A->Accepted
+          
 		friendDAO.update(friend);
 
 		friend.setErrorCode("200");
@@ -174,13 +176,16 @@ public class FriendRestService {
 
 	}
 
-	@GetMapping("/getMyFriendRequests/")
+	@GetMapping("/getMyFriendRequests")
 	public ResponseEntity<List<Friend>> getMyFriendRequests() {
-		log.debug("->->->->calling method getMyFriendRequests");
+				log.debug("->->->->calling method getMyFriendRequests");
 		String loggedInUserID = (String) httpSession.getAttribute("loggedInUserID");
+		log.debug("->->->->calling method getMyFriendRequests for "+loggedInUserID);
 		List<Friend> myFriendRequests = friendDAO.getNewFriendRequests(loggedInUserID);
+		 log.debug("->->->->ending method getMyFriendRequest");
+			
 		return new ResponseEntity<List<Friend>>(myFriendRequests, HttpStatus.OK);
-
+       
 	}
 	
 	@RequestMapping("/getRequestsSendByMe")

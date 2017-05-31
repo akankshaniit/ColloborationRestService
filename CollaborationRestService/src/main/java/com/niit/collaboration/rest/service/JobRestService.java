@@ -77,7 +77,7 @@ public class JobRestService {
 			
 		}
 		
-		@GetMapping("/getjob/{id}")
+		@GetMapping("/job/{id}")
 		public ResponseEntity<Job> getJobByID(@PathVariable("id") String id)
 		{
 			log.debug("**************Starting of the method getJobByID");

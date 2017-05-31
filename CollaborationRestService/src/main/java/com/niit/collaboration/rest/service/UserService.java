@@ -103,7 +103,7 @@ public class UserService {
 		{
 			log.debug("->->->->calling method authenticate"+user.getEmail()+user.getPassword());
 			user = userDAO.isValidate(user.getEmail(), user.getPassword());
-			//log.debug("user"+user);
+			log.debug("user"+user);
 			
 			if (user == null) {
 				user = new User(); // Do wee need to create new user?

@@ -27,6 +27,7 @@ public class ChatForumRestService {
 	@Autowired
 	private static ChatForumComment chatForumComment;
 	
+
 	@Autowired
 	private static ChatForumCommentDAO chatForumCommentDAO;
 	
