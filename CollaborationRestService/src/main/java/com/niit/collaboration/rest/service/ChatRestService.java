@@ -25,13 +25,13 @@ import com.niit.collaboration.model.Message;
 import com.niit.collaboration.model.OutputMessage;
 import com.niit.collaboration.model.User;
 
+
 @RestController
+@RequestMapping("/chat")
 public class ChatRestService {
 
-	@Controller
-		@RequestMapping("/")
-		public class ChatController 
-		{
+	
+		
 		  private Logger logger = LoggerFactory.getLogger(getClass());
 
 		  @MessageMapping("/chat")
@@ -40,9 +40,5 @@ public class ChatRestService {
 		  {
 		    logger.info("Message sent");
 		   return new OutputMessage(message, new Date());
-		  }
-		
-		
-		
-				}
+		 	}
 }

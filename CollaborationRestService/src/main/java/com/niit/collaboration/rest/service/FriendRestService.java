@@ -135,7 +135,7 @@ public class FriendRestService {
 	public ResponseEntity<Friend> rejectFriendFriendRequest(@PathVariable("friendID") String friendID) {
 		log.debug("->->->->calling method rejectFriendFriendRequest");
 
-		updateRequest(friendID, 'R');
+		friend=updateRequest(friendID, 'R');
 		return new ResponseEntity<Friend>(friend, HttpStatus.OK);
 
 	}
@@ -159,14 +159,28 @@ public class FriendRestService {
 			friend.setErrorCode("404");
 			friend.setErrorMessage("The request does not exist.  So you can not update to "+status);
 		}
-		
+	/*	
 		if (status.equals('A') || status.equals('R'))
+		{
 			friend = friendDAO.get(friendID, loggedInUserID);
+		}
 		else
+		{
 			friend = friendDAO.get(loggedInUserID, friendID);
-		friend.setStatus('A'); // N - New, R->Rejected, A->Accepted
-          
+		} */
+		friend= friendDAO.get(friendID, loggedInUserID);
+		if(friend !=null)
+		{
+		friend.setStatus(status); // N - New, R->Rejected, A->Accepted
 		friendDAO.update(friend);
+		}
+		friend= friendDAO.get(loggedInUserID, friendID);
+		if(friend !=null){
+		friend.setStatus(status); // N - New, R->Rejected, A->Accepted
+		friendDAO.update(friend);
+		}
+		  
+		
 
 		friend.setErrorCode("200");
 		friend.setErrorMessage(

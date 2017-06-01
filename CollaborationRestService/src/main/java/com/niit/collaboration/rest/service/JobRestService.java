@@ -29,15 +29,15 @@ public class JobRestService {
 
 	 private static final String jobID = null;
 
-	private static Logger log = LoggerFactory.getLogger(UserService.class);
+	private static Logger log = LoggerFactory.getLogger(JobRestService.class);
 	
 	 @Autowired
-		private static Job job;
+		private  Job job;
 	 @Autowired
-		private static JobApplication jobApplication;
+		private  JobApplication jobApplication;
 		
 		@Autowired
-		private static JobDAO jobDAO;
+		private  JobDAO jobDAO;
 		
 		@Autowired
 		HttpSession httpSession;
@@ -45,6 +45,7 @@ public class JobRestService {
 		@GetMapping("/jobs")
 		public ResponseEntity< List<Job>> getAllJob()
 		{
+		     System.out.println("JobID"+jobDAO);
 			List<Job> jobList =  jobDAO.list();
 			
 			//ResponseEntity:  we can send the data + HTTP status codes + error message

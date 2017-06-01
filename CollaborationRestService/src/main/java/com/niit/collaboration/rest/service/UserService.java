@@ -177,7 +177,7 @@ public class UserService {
 			//check whether the id exist or not
 			
 			user=  userDAO.get(updateUser.getId());
-			
+			System.out.println("hello"+user);
 			
 			if(user!=null)
 			{
