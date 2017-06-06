@@ -24,10 +24,10 @@ public class JobApplicationRestService {
 	
  
 	 @Autowired
-		private static JobApplication jobApplication;
+		private  JobApplication jobApplication;
 		
 		@Autowired
-		private static JobApplicationDAO jobApplicationDAO;
+		private  JobApplicationDAO jobApplicationDAO;
 		
 		@GetMapping("/jobapp")
 		public ResponseEntity< List<JobApplication>> getAllJobApp()
@@ -42,27 +42,17 @@ public class JobApplicationRestService {
 		
 		
 		@GetMapping("/jobapp/{id}")
-		public ResponseEntity<JobApplication> getJobApplicationByID(@PathVariable("id") String id)
+		public ResponseEntity< List<JobApplication> >getJobApplicationByID(@PathVariable("id") String id)
 		{
 			log.debug("**************Starting of the method getJobApplicationByID");
 			log.info("***************Trying to get userdetails of the id " + id);
-			jobApplication = jobApplicationDAO.get(id);
+		//	jobApplication = jobApplicationDAO.appliedlist(userid);
+			 List<JobApplication> joblist = jobApplicationDAO.appliedlist(id);
 			
-			if(jobApplication==null)
-			{
-				jobApplication = new JobApplication();
-				jobApplication.setErrorCode("404");
-				jobApplication.setErrorMessage("User does not exist with the id :" + id);
-			}
-			else
-			{
-				jobApplication.setErrorCode("200");
-				jobApplication.setErrorMessage("success");
-			}
 			
-			log.info("**************** Job Application userId " + jobApplication.getUserid());
+			log.info("**************** Job Application userId " + jobApplication.getUser_id());
 			log.debug("**************Ending of the method getjobapplicationByID");
-		  return	new ResponseEntity<JobApplication>(jobApplication , HttpStatus.OK);
+		  return	new ResponseEntity<List<JobApplication>>(joblist , HttpStatus.OK);
 		}
 		
 		
@@ -123,6 +113,8 @@ public class JobApplicationRestService {
 			
 			return updateJobApp;
 		}
+		
+		
 		
 		
 		

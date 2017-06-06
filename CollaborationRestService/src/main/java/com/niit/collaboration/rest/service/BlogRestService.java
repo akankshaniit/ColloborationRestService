@@ -16,21 +16,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.niit.collaboration.dao.BlogDAO;
+import com.niit.collaboration.dao.CommentDAO;
 import com.niit.collaboration.model.Blog;
+import com.niit.collaboration.model.Comments;
 import com.niit.collaboration.model.User;
 
 @RestController
 public class BlogRestService {
 
-	private static Logger log = LoggerFactory.getLogger(UserService.class);
+	private static Logger log = LoggerFactory.getLogger(BlogRestService.class);
 	
 	@Autowired
 	private Blog blog;
 	
 	@Autowired
 	private BlogDAO blogDAO;
+
 	
-	
+	@Autowired
+	private CommentDAO commentDAO;
 	
 	@GetMapping("/blogs")
 	public ResponseEntity< List<Blog>> getAllBlog()
@@ -80,7 +84,7 @@ public class BlogRestService {
 			log.debug("User does not exist...trying to create new user");
 			//id does not exist in the db
 			
-		//	blog.setDateTime(new Date(System.currentTimeMillis()));
+			//blog.setDateTime(new Date());
 			blogDAO.save(newBlog);
 			//NLP - NullPointerException
 			//Whenever you call any method/variable on null object - you will get NLP
@@ -127,12 +131,12 @@ public class BlogRestService {
 		
 	}
 	
-	@DeleteMapping("deleteblog/{id}")
+	@DeleteMapping("/deleteblog/{id}")
 	public Blog deleteBlog(@PathVariable("id") String id)
 	{
 		
 		//whether record exist with this id or not
-		
+		log.debug("DeleteBlog Method Start");
 		
 	    if(	blogDAO.get(id)  ==null)
 	    {
@@ -154,7 +158,7 @@ public class BlogRestService {
 	    	  }
 	    	
 	     }
-	    
+	    log.debug("DeleteBlog Method Ending");
 	    return blog;
 		
 	}
@@ -192,8 +196,8 @@ public class BlogRestService {
 			blog.setErrorMessage("Could not update the status to " + status);
 		} else {
 
-		//	user.setStatus(status);
-		//	user.setReason(reason);
+			blog.setStatus(status);
+			blog.setReason(reason);
 			
 			blogDAO.update(blog);
 			
@@ -205,5 +209,34 @@ public class BlogRestService {
 
 	}
 	
+
+@GetMapping(value = "/comments/{id}")	
+	
+	public ResponseEntity< List<Comments>> getComments(@PathVariable("id") String blogId) {	
+		System.out.println("helooooooo.....");
+		
+		List<Comments> comments = this.commentDAO.getComments(blogId);
+		
+		return new ResponseEntity<List<Comments>>(comments, HttpStatus.OK);		
+	}
+@PostMapping("/addComment/")
+public Comments addComment(@RequestBody Comments newComment)
+{
+	log.debug("Calling createComment method ");
+	//before creating user, check whether the id exist in the db or not
+	log.debug("blog id : " +newComment.getUser_id());
+//	console.log("user id : "+comment.user_id );
+//	console.log("content : "+comment.content );
+	     
+		commentDAO.add(newComment);
+		//NLP - NullPointerException
+		//Whenever you call any method/variable on null object - you will get NLP
+		newComment.setErrorCode("200");
+		newComment.setErrorMessage("Thank you For register in Blog.");
+		
+	log.debug("Endig of the  createComment method ");
+	return newComment;
+	
+}
 	
 }

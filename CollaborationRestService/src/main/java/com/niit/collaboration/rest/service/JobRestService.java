@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.niit.collaboration.dao.JobApplicationDAO;
 import com.niit.collaboration.dao.JobDAO;
 import com.niit.collaboration.model.Blog;
 import com.niit.collaboration.model.Job;
@@ -36,6 +37,8 @@ public class JobRestService {
 	 @Autowired
 		private  JobApplication jobApplication;
 		
+	
+	 
 		@Autowired
 		private  JobDAO jobDAO;
 		
@@ -112,7 +115,7 @@ public class JobRestService {
 		{
 			
 			//check whether the id exist or not
-			
+			log.debug("Starting UpdateJob Method");
 			job=  jobDAO.get(updateJob.getId());
 			
 			
@@ -127,36 +130,44 @@ public class JobRestService {
 				updateJob.setErrorCode("800");
 				updateJob.setErrorMessage("Could not updated. Job does not exist with thid id " + updateJob.getId());;
 			}
-			
+			log.debug("Ending UpdateJob Method");
 			return updateJob;
 			
 		}
 		
-		@PostMapping("/postAjob")
-		public ResponseEntity<Job> postAJob(@RequestBody Job job)
+		@PostMapping("/postAjob/")
+		public Job postAJob(@RequestBody Job newJob)
 		{
 			log.debug("starting a method of postAJob method");
-			job.setStatus('V');
+	        job = jobDAO.get(newJob.getId());
+		//	job.setStatus('V');
 			
-			if(jobDAO.save(job)==false)
+			if(job==null)
 			{
-				job.setErrorCode("404");
-				job.setErrorMessage("Not able to Post a Job");
-				log.debug("Not able to Post a Job");
+				log.debug("trying to create new Job.....");
+				//id does not exist in the db
+				jobDAO.save(newJob);
+				//NLP - NullPointerException
+				//Whenever you call any method/variable on null object - you will get NLP
+				newJob.setErrorCode("200");
+				newJob.setErrorMessage("Thank you for Posting Job.");
 				
 			}
 			else
 			{
-				job.setErrorCode("200");
-				job.setErrorMessage("Susseccfully posted a job");
-				log.debug("Susseccfully posted a job");
+				log.debug("Please choose another id as it is existed");
+				//id alredy exist in db.
+				newJob.setErrorCode("800");
+				newJob.setErrorMessage("Please choose another id as it is exist");
 				
 			}
+			log.debug("Endig of the  PostJob method ");
+			return newJob;
+
 			
-			return new ResponseEntity<Job>(HttpStatus.OK);
 		}
 		
-		@PostMapping("/applyForJob/{job_id}")
+		@PostMapping("/applyForJob/{JobID}")
 		public ResponseEntity<JobApplication> applyForJob(@PathVariable("JobID") String JobID)
 		{
 			log.debug("Starting method applyForJob");
@@ -171,25 +182,23 @@ public class JobRestService {
 		}
 		else
 			if(isUserAppliedForTheJob(loggedInUserID,JobID)==false){
-				jobApplication.setJobid(JobID);
-				jobApplication.setId(loggedInUserID);
+				jobApplication.setJob_id(JobID);
+				jobApplication.setUser_id(loggedInUserID);
 				jobApplication.setStatus('N');
 				jobApplication.setDateApplied(new Date(System.currentTimeMillis()));
 				
-				if(jobDAO.save(jobApplication))
-				{
+				jobDAO.save(jobApplication);
+				
 
 					jobApplication.setErrorCode("200");
-					jobApplication.setErrorMessage("Susseccfully Apply For Job...HR will be getBack to u");
-					log.debug("Not able to apply for Job");
-					
-				}
-				else
-				{
-					jobApplication.setErrorCode("404");
-					jobApplication.setErrorMessage("you are already aaplier for the job"+JobID);
-					log.debug("Not able to apply for Job");
-				}
+					jobApplication.setErrorMessage("Successfully Apply For Job...HR will be getBack to u");
+					log.debug("Susseccfully Apply For Job...HR will be getBack to u");
+			}
+			else
+			{
+				jobApplication.setErrorCode("404");
+				jobApplication.setErrorMessage("you are already aaplied for this job ");
+				log.debug("Not able to apply for Job");
 			}
 		return  new ResponseEntity<JobApplication>(jobApplication,HttpStatus.OK);
 		}
@@ -206,7 +215,7 @@ public class JobRestService {
 			return new ResponseEntity<JobApplication>(jobApplication,HttpStatus.OK);
 			
 		}
-		@PutMapping("/callForInterview/{userId}/{remarks}")
+		@PutMapping("/callForInterview/{userID}/{remarks}")
 		public ResponseEntity <JobApplication> callForInterview(@PathVariable("userID") String userID,
 				@PathVariable("jobID") String jobID,@PathVariable("remark") String remarks )
 		{

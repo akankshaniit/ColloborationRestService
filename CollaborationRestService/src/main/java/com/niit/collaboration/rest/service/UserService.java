@@ -292,7 +292,7 @@ public class UserService {
 				
 				@GetMapping( "/accept/{id}")
 				public ResponseEntity<User> accept(@PathVariable("id") String id) {
-					log.debug("Starting of the method accept");
+					log.debug("Starting of the method accept" +id);
 
 					user = updateStatus(id, 'A', "");
 					log.debug("Ending of the method accept");
