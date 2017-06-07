@@ -132,11 +132,12 @@ public class BlogRestService {
 	}
 	
 	@DeleteMapping("/deleteblog/{id}")
-	public Blog deleteBlog(@PathVariable("id") String id)
+	public ResponseEntity<Blog>deleteBlog(@PathVariable("id") String id)
 	{
 		
 		//whether record exist with this id or not
 		log.debug("DeleteBlog Method Start");
+		blog=blogDAO.get(id);
 		
 	    if(	blogDAO.get(id)  ==null)
 	    {
@@ -145,21 +146,15 @@ public class BlogRestService {
 	    }
 	    else
 	    {
-	    	  if (blogDAO.delete(id) )
-	    	  {
+	    	    blogDAO.delete(id) ;
+	    	  
 	    		  blog.setErrorCode("200");
 	  	    	blog.setErrorMessage("Successfully deleted");
 	    	  }
-	    	  else
-	    	  {
-	    	    	blog.setErrorCode("404");
-	    	    	blog.setErrorMessage("Could not delete. Please contact administrator");
-	    	
-	    	  }
-	    	
-	     }
+	    	  	     
 	    log.debug("DeleteBlog Method Ending");
-	    return blog;
+	    return new ResponseEntity<Blog>(blog, HttpStatus.OK);
+
 		
 	}
 	

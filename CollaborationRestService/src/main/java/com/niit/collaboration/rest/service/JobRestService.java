@@ -28,7 +28,7 @@ import com.niit.collaboration.model.User;
 @RestController
 public class JobRestService {
 
-	 private static final String jobID = null;
+	 private  final String jobID = null;
 
 	private static Logger log = LoggerFactory.getLogger(JobRestService.class);
 	
@@ -106,32 +106,30 @@ public class JobRestService {
 		}
 		
 		
-		
-		
-		
-		@PostMapping("/updatejob/")
-		
-		public Job updateJob(@RequestBody Job updateJob)
+		@PutMapping("/updatejob/{id}")
+		public ResponseEntity<Job> updateJob(@PathVariable("id") String id)
 		{
 			
 			//check whether the id exist or not
 			log.debug("Starting UpdateJob Method");
-			job=  jobDAO.get(updateJob.getId());
+			job=  jobDAO.get(id);
 			
 			
 			if(job!=null)
 			{
-				jobDAO.update(updateJob);
-				updateJob.setErrorCode("200");
-				updateJob.setErrorMessage("Successfully updated the details of Job");
+				
+				job.setStatus('C');
+				jobDAO.update(job);
+				job.setErrorCode("200");
+				job.setErrorMessage("Successfully updated the details of Job");
 			}
 			else
 			{
-				updateJob.setErrorCode("800");
-				updateJob.setErrorMessage("Could not updated. Job does not exist with thid id " + updateJob.getId());;
+				job.setErrorCode("800");
+				job.setErrorMessage("Could not updated. Job does not exist with thid id " + job.getId());;
 			}
 			log.debug("Ending UpdateJob Method");
-			return updateJob;
+			return	new ResponseEntity<Job>(job , HttpStatus.OK);
 			
 		}
 		
@@ -215,36 +213,30 @@ public class JobRestService {
 			return new ResponseEntity<JobApplication>(jobApplication,HttpStatus.OK);
 			
 		}
-		@PutMapping("/callForInterview/{userID}/{remarks}")
+		@PutMapping("/callForInterview/{userID}/{jobID}/{remarks}")
 		public ResponseEntity <JobApplication> callForInterview(@PathVariable("userID") String userID,
-				@PathVariable("jobID") String jobID,@PathVariable("remark") String remarks )
+				@PathVariable("jobID") String jobID,@PathVariable("remarks") String remarks )
 		{
 			
-			log.debug("Starting Method SelectUser method");
+			log.debug("Starting Method callForInterview method");
 			jobApplication= updateJobApplicationStatus(userID,jobID,'C',remarks);
 			return new ResponseEntity<JobApplication>(jobApplication,HttpStatus.OK);
 			
 		}
-		@PutMapping("/rejectJobApplication/{userId}/{remarks}")
+		@PutMapping("/rejectJobApplication/{userID}/{jobID}/{remarks}")
 		public ResponseEntity <JobApplication> rejectJobApplication(@PathVariable("userID") String userID,
-				@PathVariable("jobID") String jobID,@PathVariable("remark") String remarks )
+				@PathVariable("jobID") String jobID,@PathVariable("remarks") String remarks )
 		{
 			
-			log.debug("Starting Method SelectUser method");
+			log.debug("Starting Method rejectJobApplication method");
 			jobApplication= updateJobApplicationStatus(userID,jobID,'R',remarks);
 			return new ResponseEntity<JobApplication>(jobApplication,HttpStatus.OK);
 			
 		}
 
-		private JobApplication updateJobApplicationStatus(String userID, String jobID2,char status, String remarks) {
+		private JobApplication updateJobApplicationStatus(String userID, String jobID,char status, String remarks) {
 			log.debug("starting of updateJobApplicationStatus method ");
-			if(isUserAppliedForTheJob(userID, jobID)==false)
-			{
-				jobApplication.setErrorCode("404");
-				jobApplication.setErrorMessage("not applied for the job");
-				return jobApplication;
-						
-			}
+			
 			String loggedInUserRole=(String) httpSession.getAttribute("loggedInUserRole");
 			if(loggedInUserRole==null ||loggedInUserRole.isEmpty())
 			{
@@ -252,12 +244,12 @@ public class JobRestService {
 				jobApplication.setErrorMessage("you are not logged In");
 				return jobApplication;
 			}
-			if(loggedInUserRole.equalsIgnoreCase("admin")){
+			else if(!loggedInUserRole.equalsIgnoreCase("Admin")){
 				jobApplication.setErrorCode("404");
 				jobApplication.setErrorMessage("you are not Admin you cannot do this ");
 				return jobApplication;
 			}
-			jobApplication=jobDAO.getJobApplication(userID,userID);
+			jobApplication=jobDAO.getJobApplication(userID,jobID);
 			jobApplication.setStatus(status);
 			jobApplication.setRemark(remarks);
 			
@@ -273,9 +265,9 @@ public class JobRestService {
 			return jobApplication;
 		}
 		
-		private boolean isUserAppliedForTheJob(String userID,String jobId)
+		private boolean isUserAppliedForTheJob(String userID,String jobID)
 		{
-			if(jobDAO.getJobApplication(userID, jobId)==null)
+			if(jobDAO.getJobApplication(userID, jobID)==null)
 			{
 				return false;
 			}
